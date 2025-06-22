@@ -1,12 +1,22 @@
-const mongoose = require("mongoose");
-mongoose
-  .connect('mongodb+srv://admin-arham:test123@cluster0.dppdy.mongodb.net/?retryWrites=true&w=majority', { 
-    useNewUrlParser: true,
-    useUnifiedTopology: true, 
-  })
-  .then((e) => {
-    console.log(`MongoDB Connected`);
-  })
-  .catch((e) => {
-    console.log("MongoDB Connection error.", e.message);
-  });
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+pool.on('connect', () => {
+  console.log('PostgreSQL Connected');
+});
+
+pool.on('error', (err) => {
+  console.log('PostgreSQL Connection error:', err.message);
+});
+
+export default pool;

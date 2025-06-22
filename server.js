@@ -1,47 +1,41 @@
-const express = require('express');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { logger } from './middleware/logEvents.js';
+import errorHandler from './middleware/errorHandler.js';
+import sqsRoutes from './routes/api/sqs.js';
+import productRoutes from './routes/api/products.js';
+import { startAutomation } from './services/automation.js';
+
+dotenv.config();
+
 const app = express();
-const path = require('path');
-const cors = require('cors');
- require('./config/db');
-const bodyParser = require('body-parser');
- const corsOptions = require('./config/corsOptions');
-const { logger } = require('./middleware/logEvents');
-const errorHandler = require('./middleware/errorHandler');
 const PORT = process.env.PORT || 3500;
 
-
-app.use(bodyParser.urlencoded({extended:true}));
-// custom middleware logger
+// Middleware
 app.use(logger);
-
-// Cross Origin Resource Sharing
-app.use(cors(corsOptions));
-
-// built-in middleware to handle urlencoded form data
+app.use(cors());
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// built-in middleware for json 
-app.use(express.json());
+// Routes
+app.use('/api/sqs', sqsRoutes);
+app.use('/api/products', productRoutes);
 
-//serve static files
-app.use('/', express.static(path.join(__dirname, '/public')));
-
-// routes
-app.use('/', require('./routes/root'));
-app.use('/employees', require('./routes/api/employee'));
-
-
-app.all('*', (req, res) => {
-    res.status(404);
-    if (req.accepts('html')) {
-        res.sendFile(path.join(__dirname, 'views', '404.html'));
-    } else if (req.accepts('json')) {
-        res.json({ "error": "404 Not Found" });
-    } else {
-        res.type('txt').send("404 Not Found");
-    }
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Automation server is running' });
 });
 
+// 404 handler
+app.all('*', (req, res) => {
+  res.status(404).json({ error: "404 Not Found" });
+});
+
+// Error handler
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`API Server running on port ${PORT}`);
+  startAutomation();
+});
