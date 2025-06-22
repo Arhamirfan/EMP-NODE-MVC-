@@ -147,14 +147,14 @@ The automation service includes comprehensive error handling:
 
 The application is now a single, unified process. When you run npm start, both the API server and the background automation worker are initialized.
 
-# 1. Application Startup (npm start)
+### 1. Application Startup (npm start)
 
 1. You run the command npm start.
 2. server.js is executed.
 3. API Server Starts: An Express.js server is initialized, setting up all the middleware (logging, error handling) and API routes (/api/sqs/*, /api/products/*). The server begins listening for HTTP requests on the specified port.
 4. Automation Worker Starts: Immediately after the API server is up, the listen callback in server.js calls the startAutomation() function from services/automation.js. This initializes the cron job, which is now scheduled to run every 5 minutes.
 
-# 2. The Automation Cycle (Runs every 5 minutes)
+### 2. The Automation Cycle (Runs every 5 minutes)
 
 This is the core background task:
 1. Cron Trigger: The scheduled job inside services/automation.js triggers.
